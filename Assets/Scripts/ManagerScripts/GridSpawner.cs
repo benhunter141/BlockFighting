@@ -13,7 +13,7 @@ public class GridSpawner : MonoBehaviour
         {
             for (int j = 0; j < gridSize; j++)
             {
-                Vector3 position = new Vector3(i, -0.5f, j);
+                Vector3 position = new Vector3(i, 0f, j);
                 GameObject tile = Instantiate(tilePrefab, position, Quaternion.identity);
                 Vector2Int coords = new Vector2Int(i, j);
                 Location location = new Location(tile, tile.GetComponent<Renderer>(), coords);

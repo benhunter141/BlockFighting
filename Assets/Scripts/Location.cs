@@ -31,4 +31,9 @@ public class Location
     {
         renderer.material = TopManager.Instance.materialManager.fadedGreen;
     }
+
+    public void UpdateOccupyingUnitTo(Unit unit)
+    {
+        occupyingUnit = unit;
+    }
 }

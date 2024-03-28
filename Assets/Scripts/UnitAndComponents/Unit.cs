@@ -31,14 +31,50 @@ public class Unit : MonoBehaviour
     }
 
 
-    public IEnumerator ExecuteTurn()
+    public IEnumerator ExecuteTurn() //logic of what to do should be here, not within components. Use component methods, but show logic here
     {
         yield return null;
         targeting.HighlightMoveRange();
         yield return new WaitForSeconds(1f);
+
         targeting.HighlightAttackables();
-        ////targeting.HighlightBestMove();
         yield return new WaitForSeconds(1f);
+
+        targeting.HighlightBestMove();
+        yield return new WaitForSeconds(1f);
+
+        Location bestMove = targeting.BestMove();
+
+        if(bestMove == currentLocation && targeting.CanAttack()) //atk if you can
+        {
+            Debug.Log($"can atk, hop turn face");
+            yield return movement.HopTurnFace(targeting.BestCurrentAttackTarget().currentLocation.coords); //replace w atk later
+        }
+        else if (bestMove == currentLocation && targeting.CanTurnToAttack(out Unit target)) //turn if it leads to atk opportunity
+        {
+            Debug.Log($"can turn & get enemy in range and in cone", target.gameObject);
+            yield return movement.HopTurnFace(target.currentLocation.coords);
+        }
+        else if(bestMove == currentLocation && targeting.CanTurnAndFace(targeting.ClosestEnemy())) //can turn and face closest (though OOR)
+        {
+            //1. turn & face closest or
+            target = targeting.ClosestEnemy();
+            Debug.Log($"can turn in place and get closest in cone");
+            yield return movement.HopTurnFace(target.currentLocation.coords);
+        }
+        else if(bestMove == currentLocation) //can't turn and face, maximally turn and attempt facing but don't make it all the way
+        {
+            //2. full turn towards closest
+            Debug.Log($"can turn in place, but can't get closest in cone");
+            target = targeting.ClosestEnemy();
+            //is target right or left?
+            float signedAngle = 
+                Vector3.SignedAngle(currentHeading, GridMetrics.Displacement(target.currentLocation.coords, currentLocation.coords), Vector3.up);
+            Debug.Log($"signed angle: {signedAngle}");
+            yield return movement.HopTurnDegrees(signedAngle);
+        }
+        else yield return movement.MoveTo(bestMove.coords);
+
         TopManager.Instance.gridManager.UnhighlightAllTiles();
         yield return new WaitForSeconds(0.5f);
         yield return null;
@@ -51,29 +87,7 @@ public class Unit : MonoBehaviour
     //    yield return MoveToDestination(ClosestEnemy().transform.position);
     //}
 
-    private IEnumerator MoveToDestination(Vector3 destination)
-    {
-        //parabolic movement
-        int frames = 60;
-        Vector3 start = transform.position;
-        Vector3 direction = (destination - start).normalized;
-        float span = (destination - start).magnitude;
-        float dZ = span / (float)frames;
-        Debug.Log($"Span:{span}, dZ:{dZ}");
-        for(int i = 0; i < frames; i++)
-        {
-            //y = -(z - Apex.z)^2 + height
-            float z = dZ * (float)i;                               //z can be any horizontal direction
-            float y = 0.266f - (z - span / 2) * (z - span / 2); //y is always up
 
-            Vector3 position = start + Vector3.up * y + direction * z;
-            Debug.Log($"z:{z}, y:{y}, start:{start.x},{start.y},{start.z}, currentPos:{position.x},{position.y},{position.z}");
-
-            transform.position = position;
-            yield return null;
-        }
-        transform.position = destination;
-    }
 
     private void Attack()
     {

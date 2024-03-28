@@ -31,7 +31,27 @@ public class Targeting
         List<Location> attackables = AttackableMoves(potentialMoves);
         HighlightTiles(attackables, TopManager.Instance.materialManager.highlightRed);
     }
-    Location BestMove()
+
+    public bool CanTurnToAttack(out Unit target)
+    {
+        //can turn and get an enemy in range and in cone
+        var enemiesInRange = TargetsInRange();
+        target = null;
+        float minDelta = 360f;
+        foreach(var e in enemiesInRange)
+        {
+            //this is only called if e is outside of cone
+            //check within full cone amount
+            var displacement = GridMetrics.Displacement(e.currentLocation.coords, unit.currentLocation.coords);
+            float angle = Vector3.Angle(displacement, unit.currentHeading);
+            if (angle > unit.stats.attackConeWidth || angle > minDelta) continue;
+            minDelta = angle;
+            target = e;
+        }
+        if(target is null) return false;
+        return true;
+    }
+    public Location BestMove()
     {
         var moveTiles = LocationsInFrontalCone(TilesInMoveRange(), unit.stats.moveConeWidth);
         var attackTiles = AttackableMoves(moveTiles);
@@ -39,8 +59,30 @@ public class Targeting
         return BestMoveTile(moveTiles);
     }
 
+    public List<Unit> TargetsInRange()
+    {
+        var list = new List<Unit>();
+        foreach (var u in TopManager.Instance.unitManager.units)
+        {
+            if (u.allegiance == unit.allegiance) continue;
+            float dist = Vector2Int.Distance(u.currentLocation.coords, unit.currentLocation.coords);
+            if (dist < unit.stats.attackRange) list.Add(u);
+        }
+        return list;
+    }
+
+    public bool CanTurnAndFace(Unit target)
+    {
+        Vector3 displacement = GridMetrics.Displacement(target.currentLocation.coords, unit.currentLocation.coords);
+        Vector3 heading = unit.currentHeading;
+        float angle = Vector3.Angle(displacement, heading);
+        if (angle < unit.stats.attackConeWidth) return true;
+        return false;
+    }
+
     Location BestAttackTile(List<Location> attackTiles)
     {
+        //Debug.Log("calling best atk tile");
         //LOGIC FOR NOW: best atk tile is shortest distance from current position (conserve cT philosophy)
         if (attackTiles.Count == 0) throw new System.Exception("trying to find best of zero atk tiles");
         float minDist = float.MaxValue;
@@ -57,6 +99,7 @@ public class Targeting
 
     Location BestMoveTile(List<Location> moveTiles)
     {
+        //Debug.Log($"calling best move tile");
         //LOGIC FOR NOW: best non-atk move tile is closest to enemy IN-Cone
         //else if no moves have an In-Cone closestEnemy, stay put and turn to face
         float minDist = float.MaxValue;
@@ -75,8 +118,8 @@ public class Targeting
         return bestTile;
     }
     float TargetDeflectionFromCentre(Unit target, Vector2Int coords, Vector3 facing) => Vector3.Angle(facing, GridMetrics.Displacement(target.currentLocation.coords, coords));
-    bool TargetInFrontConeFrom(Unit target, Vector2Int coords, Vector3 facing) => TargetDeflectionFromCentre(target, coords, facing) < unit.stats.attackConeWidth;
-    bool CanAttack() => AttackablesFrom(unit.currentLocation.coords, unit.currentHeading).Count != 0;
+    bool TargetInFrontConeFrom(Unit target, Vector2Int coords, Vector3 facing) => TargetDeflectionFromCentre(target, coords, facing) < unit.stats.attackConeWidth / 2;
+    public bool CanAttack() => AttackablesFrom(unit.currentLocation.coords, unit.currentHeading).Count != 0;
     List<Location> AttackableMoves(List<Location> potentialMoves)
     {
         var list = new List<Location>();
@@ -89,10 +132,9 @@ public class Targeting
         }
         return list;
     }
-
     bool TileIsWithinCone(Vector2Int coords, float coneWidth)
     {
-        if (coords == unit.currentLocation.coords) return false;
+        //if (coords == unit.currentLocation.coords) return false;
         Vector3 displacement = new Vector3(coords.x - unit.currentLocation.coords.x, 0f, coords.y - unit.currentLocation.coords.y);
         float deltaTheta = Vector3.Angle(displacement, unit.currentHeading);
         if (deltaTheta <= coneWidth / 2) return true;
@@ -127,7 +169,7 @@ public class Targeting
         return locations;
     }
 
-    Unit ClosestEnemy()
+    public Unit ClosestEnemy()
     {
         float maxDist = float.MaxValue;
         Unit target = unit;
@@ -170,6 +212,8 @@ public class Targeting
         var list = new List<Unit>();
         foreach(var u in TopManager.Instance.unitManager.units)
         {
+            //allegiance check
+            if (u.allegiance == unit.allegiance) continue;
             //distance check
             float dist = Vector2Int.Distance(coords, u.currentLocation.coords);
             if (dist > unit.stats.attackRange) continue;
@@ -179,6 +223,22 @@ public class Targeting
             list.Add(u);
         }
         return list;
+    }
+
+    public Unit BestCurrentAttackTarget()
+    {
+        var attackables = AttackablesFrom(unit.currentLocation.coords, unit.currentHeading);
+        if (attackables.Count == 0) throw new System.Exception("no attackables");
+        float minDist = float.MaxValue;
+        Unit target = null;
+        foreach (Unit u in attackables)
+        {
+            float dist = Vector2Int.Distance(u.currentLocation.coords, unit.currentLocation.coords);
+            if (dist > minDist) continue;
+            minDist = dist;
+            target = u;
+        }
+        return target;
     }
 
 
