@@ -6,4 +6,5 @@ using UnityEngine;
 public class UnitStats : ScriptableObject
 {
     public float moveRange, attackRange, attackConeWidth, moveConeWidth;
+    public int maxHealth, damage, stamina;
 }

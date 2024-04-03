@@ -5,6 +5,7 @@ using UnityEngine;
 
 public class TickManager : MonoBehaviour
 {
+    int tick = 0;
     public void BeginEncounter()
     {
         StartCoroutine(Encounter());
@@ -15,16 +16,28 @@ public class TickManager : MonoBehaviour
         Debug.Log("Encounter");
         while (!EncounterIsResolved())
         {
-            Debug.Log("Processing Tick");
+            Debug.Log($"Processing Tick {tick}");
+            tick++;
             yield return ProcessTick();
         }
     }
 
     IEnumerator ProcessTick()
     {
-        foreach(var u in TopManager.Instance.unitManager.units)
+        for (int i = 0; i < TopManager.Instance.unitSpawner.id; i++)
         {
-            yield return u.ExecuteTurn();
+            //find the unit with the matching id
+            var units = TopManager.Instance.unitManager.units;
+            Unit unit = units.Find(x => x.id == i);
+            if (unit is not null)
+            {
+                Debug.Log($"Found unit {i}");
+                yield return unit.ExecuteTurn();
+            }
+            else
+            {
+                Debug.Log($"Did not find unit {i}");
+            }
         }
     }
 

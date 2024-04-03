@@ -6,6 +6,8 @@ using UnityEngine;
 public class Movement
 {
     Unit unit;
+    int moveFrames = 40;
+    int hopFrames = 20;
     public Movement(Unit _unit)
     {
         unit = _unit;
@@ -18,7 +20,7 @@ public class Movement
     public IEnumerator MoveTo(Vector2Int coords)
     {
         //parabolic movement
-        int frames = 60;
+        int frames = moveFrames;
         Vector3 start = GridMetrics.Position(unit.currentLocation.coords);
         Vector3 destination = GridMetrics.Position(coords);
         Vector3 displacement = GridMetrics.Displacement(coords, unit.currentLocation.coords);
@@ -51,7 +53,7 @@ public class Movement
     }
     public IEnumerator HopTurnDegrees(float degrees)
     {
-        int frames = 30;
+        int frames = hopFrames;
         float span = 1f;
         float dZ = span / (float)frames;
         Vector3 currentPos = unit.transform.position;
@@ -75,7 +77,7 @@ public class Movement
     }
     public IEnumerator HopTurnFace(Vector2Int coords) //rotation
     {
-        int frames = 30;
+        int frames = hopFrames;
         float span = 1f;
         float dZ = span / (float)frames;
         Vector3 currentPos = unit.transform.position;

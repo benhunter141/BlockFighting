@@ -14,7 +14,20 @@ public class GridManager : MonoBehaviour
     {
         foreach(var val in locations.Values)
         {
-            val.UnHighlightTile();
+            val.UnHighlight();
         }
+    }
+    //should have all the highlight stuff here
+    public void Highlight(List<Location> tiles, Material material)
+    {
+        foreach(var t in tiles)
+        {
+            t.Highlight(material);
+        }
+    }
+
+    public void Highlight(Location tile, Material material)
+    {
+        tile.Highlight(material);
     }
 }

@@ -7,12 +7,23 @@ public class UnitSpawner : MonoBehaviour
     //Spawn a few units on opposing teams, pass refs to unit manager
     public GameObject fighter, spearman;
     public Allegiance red, blue;
+    public int id;
 
     public void SpawnUnits()
     {
-        SpawnUnit(fighter, 2, 2, blue);
+        id = 0;
         SpawnUnit(fighter, 1, 0, blue);
         SpawnUnit(fighter, 2, 0, blue);
+        SpawnUnit(fighter, 3, 0, blue);
+        SpawnUnit(fighter, 4, 0, blue);
+        SpawnUnit(fighter, 5, 0, blue);
+        //SpawnUnit(fighter, 6, 0, blue);
+        //SpawnUnit(fighter, 1, 1, blue);
+        //SpawnUnit(fighter, 2, 1, blue);
+        //SpawnUnit(fighter, 3, 1, blue);
+        //SpawnUnit(fighter, 4, 1, blue);
+        //SpawnUnit(fighter, 5, 1, blue);
+        //SpawnUnit(fighter, 6, 1, blue);
         SpawnUnit(fighter, 8, 6, red);
         SpawnUnit(fighter, 5, 9, red);
     }
@@ -27,6 +38,7 @@ public class UnitSpawner : MonoBehaviour
         Vector2Int coords = new Vector2Int(x, z);
         unit.currentLocation = TopManager.Instance.gridManager.locations[coords];
         TopManager.Instance.unitManager.units.Add(unit);
-
+        unit.id = id;
+        id++;
     }
 }

@@ -6,7 +6,7 @@ public class Location
 {
     //terrain (implement later)
     //Unit or null
-    Unit occupyingUnit;
+    public Unit occupyingUnit;
     GameObject tile;
     Renderer renderer;
     public Vector2Int coords;
@@ -19,15 +19,15 @@ public class Location
     }
 
     public float DistanceTo(Location l) => Vector2Int.Distance(coords, l.coords);
-    public void HighlightTile()
+    public void Highlight()
     {
         renderer.material = TopManager.Instance.materialManager.fadedYellow;
     }
-    public void HighlightTile(Material material)
+    public void Highlight(Material material)
     {
         renderer.material = material;
     }
-    public void UnHighlightTile()
+    public void UnHighlight()
     {
         renderer.material = TopManager.Instance.materialManager.fadedGreen;
     }
